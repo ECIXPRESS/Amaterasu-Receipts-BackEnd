@@ -40,9 +40,9 @@ jobs:
           docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:$GIT_TAG
 
-      - name: Deploy container to Azure Web App (DEV)
+      - name: Deploy container to Azure Web App (PROD)
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME_RECEIPTS_DEV }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_RECEIPTS_DEV }}
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME_RECEIPTS_PROD }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_RECEIPTS_PROD }}
           images: ${{ secrets.ACR_LOGIN_SERVER }}/receipts-service:latest
