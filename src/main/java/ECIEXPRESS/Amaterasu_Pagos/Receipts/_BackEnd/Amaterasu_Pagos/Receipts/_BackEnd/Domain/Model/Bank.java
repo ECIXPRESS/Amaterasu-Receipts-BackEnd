@@ -9,7 +9,6 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Bank extends PaymentMethod {
-    private PaymentMethodType paymentMethodType;
     private BankPaymentType bankPaymentType;
     private BankAccountType bankAccountType;
     private String bankReceiptNumber;
@@ -20,5 +19,20 @@ public class Bank extends PaymentMethod {
         bank.setPaymentMethodType(PaymentMethodType.BANK);
         return bank;
     }
-
+    @Override
+    public BankPaymentType getBankPaymentType() {
+        return this.bankPaymentType;
+    }
+    @Override
+    public BankAccountType getBankAccountType() {
+        return this.bankAccountType;
+    }
+    @Override
+    public String getBankReceiptNumber() {
+        return this.bankReceiptNumber;
+    }
+    @Override
+    public String getBankName() {
+        return this.bankName;
+    }
 }

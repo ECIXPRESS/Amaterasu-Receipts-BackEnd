@@ -11,5 +11,4 @@ public class TimeStamps {
     private String createdAt;
     private String PaymentProcessedAt;
     private String ReceiptGeneratedDate;
-
 }

@@ -4,9 +4,12 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+
+@Slf4j
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,12 +19,19 @@ public class PaymentDetail {
     private double finalAmount;
     private List<String> appliedPromotions;
 
-    public PaymentDetail createPaymentDetail(CreateReceiptRequest createReceiptRequest) {
+    public static PaymentDetail createPaymentDetail(CreateReceiptRequest createReceiptRequest) {
+        log.info("Creating payment detail");
         PaymentDetail paymentDetail = new PaymentDetail();
-        paymentDetail.setBankReceiptNumber(createReceiptRequest.getBankReceiptNumber());
-        paymentDetail.setOriginalAmount(100.0);
-        paymentDetail.setFinalAmount(100.0);
-        paymentDetail.setAppliedPromotions(List.of("Promotion 1", "Promotion 2"));
+        paymentDetail.setBankReceiptNumber(createReceiptRequest.paymentMethod().getBankReceiptNumber());
+        double originalAmount = createReceiptRequest.originalAmount();
+        paymentDetail.setOriginalAmount(originalAmount);
+        double finalAmount = createReceiptRequest.finalAmount();
+        if(finalAmount < originalAmount){
+            log.error("Final amount cannot be less than the original amount");
+            throw new IllegalArgumentException("Final amount cannot be less than the original amount");
+        }
+        paymentDetail.setFinalAmount(finalAmount);
+        paymentDetail.setAppliedPromotions(createReceiptRequest.appliedPromotions());
         return paymentDetail;
     }
 }

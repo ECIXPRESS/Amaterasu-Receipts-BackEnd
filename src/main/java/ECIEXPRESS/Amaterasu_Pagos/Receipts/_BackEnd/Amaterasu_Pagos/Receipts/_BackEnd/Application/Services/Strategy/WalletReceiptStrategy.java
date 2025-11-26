@@ -1,40 +1,29 @@
-package ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services;
+package ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy;
 
-import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Ports.ReceiptUseCases;
-import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy.BankReceiptStrategy;
-import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy.CashReceiptStrategy;
-import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy.ReceiptStrategy;
-import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy.WalletReceiptStrategy;
-import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.PaymentMethodType;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.ReceiptStatus;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Receipt;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Port.ReceiptRepositoryProvider;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Dto.RepositorytResponses.ReceiptRepositoryResponse;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptRequests.CreateReceiptRequest;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptResponses.CreateReceiptResponse;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.Map;
 
 @Slf4j
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Service
-public class ReceiptService implements ReceiptUseCases {
-    private final Map<PaymentMethodType, ReceiptStrategy> strategyMap =Map.of(
-            PaymentMethodType.BANK, new BankReceiptStrategy(),
-            PaymentMethodType.WALLET, new WalletReceiptStrategy(),
-            PaymentMethodType.CASH, new CashReceiptStrategy());
+public class WalletReceiptStrategy implements ReceiptStrategy{
+    private ReceiptRepositoryProvider receiptRepositoryProvider;
     @Override
     public CreateReceiptResponse createReceipt(CreateReceiptRequest request) {
         log.info("Creating receipt for client {} For store {} with orderId {}", request.clientId(),request.storeId(), request.orderId());
         Receipt receipt = Receipt.createReceipt(request);
         log.info("Receipt created successfully");
         log.info("Saving receipt to database");
-        ReceiptRepositoryResponse repositoryResponse = receiptRepositoryProvider.save(receipt);
+        ReceiptRepositoryResponse repositoryResponse= receiptRepositoryProvider.save(receipt);
         log.info("Receipt saved successfully");
         receipt.getTimeStamps().setReceiptGeneratedDate(new Date().toString());
         receipt.setReceiptStatus(ReceiptStatus.PENDING);
