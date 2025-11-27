@@ -3,11 +3,7 @@ server:
 
 spring:
   application:
-    name: receipts-service
-  data:
-    mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/Receipts}
-      database: Receipts
+    name: receipt-service
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -31,7 +27,38 @@ springdoc:
   cache:
     disabled: true
   info:
-    title: Receipts Service API
+    title: Receipt Service API
     version: 1.0.0
     description: API para gestión de recibos en ECIEXPRESS
 
+# Configuración de Microservicios Externos
+microservices:
+  qr-validator:
+    url: http://localhost:8080
+    base-path: /api/v1/qr-validator
+    timeout: 5000
+    retry:
+      max-attempts: 3
+      backoff-delay: 1000
+
+# Configuración de Resilience4j para Circuit Breaker
+resilience4j:
+  circuitbreaker:
+    instances:
+      qrValidatorService:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10000
+        permitted-number-of-calls-in-half-open-state: 3
+  retry:
+    instances:
+      qrValidatorService:
+        max-attempts: 3
+        wait-duration: 2s
+
+logging:
+  level:
+    com.tucompany.users: DEBUG
+    org.springframework.data.mongodb: INFO
+    ECIEXPRESS.AmaterasuPagos.Receipt.BackEnd.Infrastructure.Clients: DEBUG
+    org.springdoc: DEBUG

@@ -1,5 +1,6 @@
 package ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model;
 
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.OrderStatus;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.ReceiptStatus;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptRequests.CreateReceiptRequest;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ public class Receipt {
     private PaymentDetail paymentDetail;
     private PaymentMethod paymentMethod;
     private ReceiptStatus receiptStatus;
+    private OrderStatus orderStatus;
     private TimeStamps timeStamps;
     public static Receipt createReceipt(CreateReceiptRequest request) {
         Receipt receipt = new Receipt();
@@ -31,6 +33,7 @@ public class Receipt {
         receipt.setPaymentDetail(PaymentDetail.createPaymentDetail(request));
         receipt.setPaymentMethod(request.paymentMethod());
         receipt.setReceiptStatus(ReceiptStatus.PENDING);
+        receipt.setOrderStatus(OrderStatus.PENDING);
         receipt.setTimeStamps(request.timeStamps());
         return receipt;
     }
