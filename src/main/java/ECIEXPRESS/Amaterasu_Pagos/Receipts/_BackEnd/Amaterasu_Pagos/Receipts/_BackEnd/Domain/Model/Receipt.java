@@ -1,6 +1,7 @@
 package ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model;
 
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.OrderStatus;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.PaymentMethodType;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.ReceiptStatus;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptRequests.CreateReceiptRequest;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.IdGenerator;
@@ -39,6 +40,10 @@ public class Receipt {
     }
 
     public boolean updateToPayed() {
+        if(this.paymentMethod.getPaymentMethodType() != PaymentMethodType.CASH){
+            log.error("Payment method of the receipt {} is not cash", this.receiptId);
+            throw new RuntimeException("Payment method of the receipt is not cash");
+        }
         if(this.receiptStatus == ReceiptStatus.PAYED){
             log.error("Receipt {} already payed", this.receiptId);
             throw new RuntimeException("Receipt already payed");
