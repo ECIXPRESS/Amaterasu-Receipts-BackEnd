@@ -8,6 +8,7 @@ public record CreateReceiptResponse (
         String clientId,
         String storeId,
         double finalAmount,
-        ReceiptStatus receiptStatus
+        ReceiptStatus receiptStatus,
+        String qrCode
 ){
 }

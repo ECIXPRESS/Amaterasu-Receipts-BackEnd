@@ -1,5 +1,6 @@
 package ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Dto.RepositorytRequests;
 
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.OrderStatus;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.ReceiptStatus;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.PaymentDetail;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.PaymentMethod;
@@ -20,18 +21,20 @@ import org.springframework.data.mongodb.core.mapping.Field;
 public class ReceiptDocument {
     @Id
     private String receiptId;
-    @Field("OrderId")
+    @Field("orderId")
     private String orderId;
-    @Field("ClientId")
+    @Field("clientId")
     private String clientId;
-    @Field("StoreId")
+    @Field("storeId")
     private String storeId;
-    @Field("PaymentDetail")
+    @Field("paymentDetail")
     private PaymentDetail paymentDetail;
-    @Field("PaymentMethod")
+    @Field("paymentMethod")
     private PaymentMethod paymentMethod;
-    @Field("ReceiptStatus")
+    @Field("receiptStatus")
     private ReceiptStatus receiptStatus;
-    @Field("TimeStamps")
+    @Field("orderStatus")
+    private OrderStatus orderStatus;
+    @Field("timestamps")
     private TimeStamps timeStamps;
 }

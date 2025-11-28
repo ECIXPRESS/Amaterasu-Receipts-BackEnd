@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: receipt-service
+  data:
+    mongodb:
+      uri: mongodb+srv://manuelguarnizog_db_user:slmEouXGl5LaTDbg@clustereciexpress.m7ljcsf.mongodb.net/?appName=ClusterECIEXPRESS
+      database: Receipts
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -23,7 +27,7 @@ springdoc:
     filter: true
   show-actuator: false
   default-consumes-media-type: application/json
-  default-produces-media-type: application/json
+  default-pro duces-media-type: application/json
   cache:
     disabled: true
   info:

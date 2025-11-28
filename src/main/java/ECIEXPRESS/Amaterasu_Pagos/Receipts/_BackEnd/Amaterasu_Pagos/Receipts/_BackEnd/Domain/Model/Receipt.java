@@ -3,12 +3,10 @@ package ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._B
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.OrderStatus;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.ReceiptStatus;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptRequests.CreateReceiptRequest;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.IdGenerator;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -26,7 +24,7 @@ public class Receipt {
     private TimeStamps timeStamps;
     public static Receipt createReceipt(CreateReceiptRequest request) {
         Receipt receipt = new Receipt();
-        receipt.setReceiptId(UUID.randomUUID().toString());
+        receipt.setReceiptId(IdGenerator.generate());
         receipt.setOrderId(request.orderId());
         receipt.setClientId(request.clientId());
         receipt.setStoreId(request.storeId());
@@ -36,5 +34,16 @@ public class Receipt {
         receipt.setOrderStatus(OrderStatus.PENDING);
         receipt.setTimeStamps(request.timeStamps());
         return receipt;
+    }
+
+    public void updateToDelivered() {
+        if(this.receiptStatus == ReceiptStatus.DELIVERED){
+            throw new RuntimeException("Receipt already delivered");
+        }
+        else if(this.orderStatus == OrderStatus.DELIVERED){
+            throw new RuntimeException("Receipt already delivered");
+        }
+        this.receiptStatus = ReceiptStatus.DELIVERED;
+        this.orderStatus = OrderStatus.DELIVERED;
     }
 }

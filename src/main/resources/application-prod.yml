@@ -1,3 +1,8 @@
+spring:
+  data:
+    mongodb:
+      uri: "mongodb+srv://prueba:prueba1234@sirhadb.e43oxls.mongodb.net/?retryWrites=true&w=majority&appName=SIRHADB"
+      database: SIRHAdb
 microservices:
   qr-validator:
     url: http://qr-validator.prod.eciexpress.com
