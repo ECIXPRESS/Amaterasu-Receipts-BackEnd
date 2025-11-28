@@ -52,6 +52,8 @@
             **/*ApplicationReceipts.java,
             **/*Configuration.java,
             **/*Config.java,
+            **/Mappers/**,
+            **/Utils/**,
             **/OpenApiConfig.java
         </sonar.coverage.exclusions>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
@@ -218,6 +220,8 @@
                                 <exclude>**/*Application.class</exclude>
                                 <exclude>**/*ApplicationReceipts.class</exclude>
                                 <exclude>**/*Configuration.class</exclude>
+                                <exclude>**/Mappers/**</exclude>
+                                <exclude>**/Utils/**</exclude>
                                 <exclude>**/*Config.class</exclude>
                                 <exclude>**/*$Builder.class</exclude>
                             </excludes>
@@ -243,6 +247,8 @@
                                 <exclude>**/*Application.class</exclude>
                                 <exclude>**/*ApplicationReceipts.class</exclude>
                                 <exclude>**/*Configuration.class</exclude>
+                                <exclude>**/Mappers/**</exclude>
+                                <exclude>**/Utils/**</exclude>
                                 <exclude>**/*Config.class</exclude>
                                 <exclude>**/*$Builder.class</exclude>
                             </excludes>
