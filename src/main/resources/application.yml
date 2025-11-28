@@ -1,0 +1,68 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: receipt-service
+  data:
+    mongodb:
+      uri: mongodb+srv://manuelguarnizog_db_user:slmEouXGl5LaTDbg@clustereciexpress.m7ljcsf.mongodb.net/?appName=ClusterECIEXPRESS
+      database: Receipts
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+# Configuración COMPLETA de Swagger/OpenAPI
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: alpha
+    tags-sorter: alpha
+    doc-expansion: none
+    display-request-duration: true
+    filter: true
+  show-actuator: false
+  default-consumes-media-type: application/json
+  default-pro duces-media-type: application/json
+  cache:
+    disabled: true
+  info:
+    title: Receipt Service API
+    version: 1.0.0
+    description: API para gestión de recibos en ECIEXPRESS
+
+# Configuración de Microservicios Externos
+microservices:
+  qr-validator:
+    url: http://localhost:8080
+    base-path: /api/v1/qr-validator
+    timeout: 5000
+    retry:
+      max-attempts: 3
+      backoff-delay: 1000
+
+# Configuración de Resilience4j para Circuit Breaker
+resilience4j:
+  circuitbreaker:
+    instances:
+      qrValidatorService:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10000
+        permitted-number-of-calls-in-half-open-state: 3
+  retry:
+    instances:
+      qrValidatorService:
+        max-attempts: 3
+        wait-duration: 2s
+
+logging:
+  level:
+    com.tucompany.users: DEBUG
+    org.springframework.data.mongodb: INFO
+    ECIEXPRESS.AmaterasuPagos.Receipt.BackEnd.Infrastructure.Clients: DEBUG
+    org.springdoc: DEBUG
