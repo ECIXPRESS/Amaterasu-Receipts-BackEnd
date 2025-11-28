@@ -16,5 +16,7 @@ public interface ReceiptUseCases {
 
     GetQrReceiptResponse getQrCodeByOrderId(GetQrReceiptRequest request);
 
+    boolean updateToPayed(UpdateToPayedRequest request);
+
     boolean updateToDelivered(UpdateToDeliveredRequest request);
 }

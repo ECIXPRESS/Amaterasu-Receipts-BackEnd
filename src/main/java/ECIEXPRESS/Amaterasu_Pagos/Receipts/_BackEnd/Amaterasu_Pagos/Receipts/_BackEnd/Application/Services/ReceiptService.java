@@ -65,11 +65,18 @@ public class ReceiptService implements ReceiptUseCases {
     }
 
     @Override
+    public boolean updateToPayed(UpdateToPayedRequest request) {
+        Receipt receipt = ReceiptMapper.createReceipt(receiptRepositoryProvider.getByOrderId(request.orderId()));
+        receipt.updateToPayed();
+        receiptRepositoryProvider.save(receipt);
+        return true;
+    }
+
+    @Override
     public boolean updateToDelivered(UpdateToDeliveredRequest request) {
         Receipt receipt = ReceiptMapper.createReceipt(receiptRepositoryProvider.getByOrderId(request.orderId()));
         receipt.updateToDelivered();
-        receipt.setReceiptStatus(ReceiptStatus.DELIVERED);
-        receipt.setOrderStatus(OrderStatus.DELIVERED);
+        receiptRepositoryProvider.save(receipt);
         return true;
     }
 }

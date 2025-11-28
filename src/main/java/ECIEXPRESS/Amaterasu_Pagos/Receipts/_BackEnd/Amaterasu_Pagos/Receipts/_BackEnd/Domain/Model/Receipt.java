@@ -7,7 +7,9 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -36,14 +38,41 @@ public class Receipt {
         return receipt;
     }
 
-    public void updateToDelivered() {
+    public boolean updateToPayed() {
+        if(this.receiptStatus == ReceiptStatus.PAYED){
+            log.error("Receipt {} already payed", this.receiptId);
+            throw new RuntimeException("Receipt already payed");
+        }
+        if(this.orderStatus == OrderStatus.REFUNDED){
+            log.error("Receipt {} already refunded", this.receiptId);
+            throw new RuntimeException("Receipt already refunded");
+        }
+        this.receiptStatus = ReceiptStatus.PAYED;
+        return true;
+    }
+
+    public boolean updateToDelivered() {
         if(this.receiptStatus == ReceiptStatus.DELIVERED){
+            log.error("Receipt {} already delivered", this.receiptId);
             throw new RuntimeException("Receipt already delivered");
         }
         else if(this.orderStatus == OrderStatus.DELIVERED){
+            log.error("Receipt {} already delivered", this.receiptId);
             throw new RuntimeException("Receipt already delivered");
         }
-        this.receiptStatus = ReceiptStatus.DELIVERED;
-        this.orderStatus = OrderStatus.DELIVERED;
+        if(this.receiptStatus == ReceiptStatus.REFUNDED){
+            log.error("Receipt {} already refunded", this.receiptId);
+            throw new RuntimeException("Receipt already refunded");
+        }
+        if (this.orderStatus == OrderStatus.REFUNDED){
+            log.error("Receipt {} already refunded", this.receiptId);
+            throw new RuntimeException("Receipt already refunded");
+        }
+        if(this.orderStatus == OrderStatus.PENDING && this.receiptStatus == ReceiptStatus.PAYED){
+            this.receiptStatus = ReceiptStatus.DELIVERED;
+            this.orderStatus = OrderStatus.DELIVERED;
+            return true;
+        }
+        return false;
     }
 }
