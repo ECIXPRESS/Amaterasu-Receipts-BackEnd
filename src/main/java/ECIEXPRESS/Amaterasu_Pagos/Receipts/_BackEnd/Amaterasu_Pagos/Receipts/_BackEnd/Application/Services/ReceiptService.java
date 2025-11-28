@@ -32,11 +32,13 @@ public class ReceiptService implements ReceiptUseCases {
             PaymentMethodType.BANK, new BankReceiptStrategy(),
             PaymentMethodType.WALLET, new WalletReceiptStrategy(),
             PaymentMethodType.CASH, new CashReceiptStrategy());
+
     @Override
     public CreateReceiptResponse createReceipt(CreateReceiptRequest request) {
         ReceiptStrategy strategy = strategyMap.get(request.paymentMethod().getPaymentMethodType());
         return strategy.createReceipt(request);
     }
+
     @Override
     public List<GetReceiptResponse> getReceiptsByClientId(GetReceiptByClientIdRequest request) {
         List<Receipt> receipts = receiptRepositoryProvider.getReceiptsByClientId(request.clientId()).stream()
@@ -67,16 +69,16 @@ public class ReceiptService implements ReceiptUseCases {
     @Override
     public boolean updateToPayed(UpdateToPayedRequest request) {
         Receipt receipt = ReceiptMapper.createReceipt(receiptRepositoryProvider.getByOrderId(request.orderId()));
-        receipt.updateToPayed();
+        boolean stateUpdate = receipt.updateToPayed();
         receiptRepositoryProvider.save(receipt);
-        return true;
+        return stateUpdate;
     }
 
     @Override
     public boolean updateToDelivered(UpdateToDeliveredRequest request) {
         Receipt receipt = ReceiptMapper.createReceipt(receiptRepositoryProvider.getByOrderId(request.orderId()));
-        receipt.updateToDelivered();
+        boolean stateUpdate = receipt.updateToDelivered();
         receiptRepositoryProvider.save(receipt);
-        return true;
+        return stateUpdate;
     }
 }
