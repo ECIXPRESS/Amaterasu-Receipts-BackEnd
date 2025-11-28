@@ -1,0 +1,243 @@
+package ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services;
+
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy.BankReceiptStrategy;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy.CashReceiptStrategy;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy.WalletReceiptStrategy;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.*;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.*;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Port.ReceiptRepositoryProvider;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Dto.RepositorytRequests.ReceiptDocument;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Dto.RepositorytResponses.ReceiptRepositoryResponse;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptRequests.*;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptResponses.CreateReceiptResponse;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptResponses.GetQrReceiptResponse;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptResponses.GetReceiptResponse;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class ReceiptServiceTest {
+
+    @Mock
+    private ReceiptRepositoryProvider receiptRepositoryProvider;
+
+    @Mock
+    private BankReceiptStrategy bankReceiptStrategy;
+
+    @Mock
+    private CashReceiptStrategy cashReceiptStrategy;
+
+    @Mock
+    private WalletReceiptStrategy walletReceiptStrategy;
+
+    private ReceiptService receiptService;
+
+    @BeforeEach
+    void setUp() {
+        receiptService = new ReceiptService(receiptRepositoryProvider);
+        // Use reflection to set the private fields for testing
+        try {
+            var repositoryField = ReceiptService.class.getDeclaredField("receiptRepositoryProvider");
+            repositoryField.setAccessible(true);
+            repositoryField.set(receiptService, receiptRepositoryProvider);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set repository provider", e);
+        }
+    }
+
+    @Test
+    void createReceipt_WithBankPayment_ShouldUseBankStrategy() {
+        // Given
+        Bank bank = new Bank();
+        bank.setPaymentMethodType(PaymentMethodType.BANK);
+
+        CreateReceiptRequest request = new CreateReceiptRequest(
+                "order123", "client123", "store456",
+                100.0, 90.0, bank, new TimeStamps(), List.of("PROMO10")
+        );
+
+        CreateReceiptResponse expectedResponse = new CreateReceiptResponse(
+                "receipt123", "order123", "client123", "store456",
+                90.0, ReceiptStatus.PAYED, "qr_code"
+        );
+
+        when(bankReceiptStrategy.createReceipt(request)).thenReturn(expectedResponse);
+
+        // Use reflection to set strategy map
+        try {
+            var strategyMapField = ReceiptService.class.getDeclaredField("strategyMap");
+            strategyMapField.setAccessible(true);
+            strategyMapField.set(receiptService,
+                    java.util.Map.of(
+                            PaymentMethodType.BANK, bankReceiptStrategy,
+                            PaymentMethodType.CASH, cashReceiptStrategy,
+                            PaymentMethodType.WALLET, walletReceiptStrategy
+                    ));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set strategy map", e);
+        }
+
+        // When
+        CreateReceiptResponse result = receiptService.createReceipt(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("receipt123", result.receiptId());
+        verify(bankReceiptStrategy).createReceipt(request);
+    }
+
+    @Test
+    void getReceiptsByClientId_ShouldReturnReceipts() {
+        // Given
+        String clientId = "client123";
+        GetReceiptByClientIdRequest request = new GetReceiptByClientIdRequest(clientId);
+
+        ReceiptDocument receiptDoc = new ReceiptDocument();
+        receiptDoc.setReceiptId("receipt1");
+        receiptDoc.setOrderId("order1");
+        receiptDoc.setClientId(clientId);
+        receiptDoc.setStoreId("store1");
+
+        ReceiptRepositoryResponse repoResponse = new ReceiptRepositoryResponse(receiptDoc);
+
+        when(receiptRepositoryProvider.getReceiptsByClientId(clientId))
+                .thenReturn(List.of(repoResponse));
+
+        // When
+        List<GetReceiptResponse> result = receiptService.getReceiptsByClientId(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("receipt1", result.get(0).receiptId());
+    }
+
+    @Test
+    void getReceiptByOrderId_ShouldReturnReceipt() {
+        // Given
+        String orderId = "order123";
+        GetReceiptByOrderIdRequest request = new GetReceiptByOrderIdRequest(orderId);
+
+        ReceiptDocument receiptDoc = new ReceiptDocument();
+        receiptDoc.setReceiptId("receipt123");
+        receiptDoc.setOrderId(orderId);
+        receiptDoc.setClientId("client123");
+
+        ReceiptRepositoryResponse repoResponse = new ReceiptRepositoryResponse(receiptDoc);
+
+        when(receiptRepositoryProvider.getByOrderId(orderId)).thenReturn(repoResponse);
+
+        // When
+        GetReceiptResponse result = receiptService.getReceiptByOrderId(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("receipt123", result.receiptId());
+        assertEquals(orderId, result.orderId());
+    }
+
+    @Test
+    void getQrCodeByOrderId_ShouldReturnQRCode() throws Exception {
+        // Given
+        String orderId = "order123";
+        GetQrReceiptRequest request = new GetQrReceiptRequest(orderId);
+
+        // Create a cash payment method
+        Cash cashPayment = new Cash();
+        cashPayment.setPaymentMethodType(PaymentMethodType.CASH);
+
+        // Create and set up time stamps
+        TimeStamps timeStamps = new TimeStamps();
+        String currentTimestamp = java.time.Instant.now().toString();
+        timeStamps.setReceiptGeneratedDate(currentTimestamp);
+        timeStamps.setPaymentProcessedAt(currentTimestamp);
+
+        ReceiptDocument receiptDoc = new ReceiptDocument();
+        receiptDoc.setReceiptId("receipt123");
+        receiptDoc.setOrderId(orderId);
+        receiptDoc.setClientId("client123");
+        receiptDoc.setReceiptStatus(ReceiptStatus.PENDING);
+        receiptDoc.setOrderStatus(OrderStatus.PENDING);
+        receiptDoc.setPaymentMethod(cashPayment);
+        receiptDoc.setTimeStamps(timeStamps);  // Set the time stamps
+
+        ReceiptRepositoryResponse repoResponse = new ReceiptRepositoryResponse(receiptDoc);
+
+        when(receiptRepositoryProvider.getByOrderId(orderId)).thenReturn(repoResponse);
+
+        // When
+        GetQrReceiptResponse result = receiptService.getQrCodeByOrderId(request);
+
+        // Then
+        assertNotNull(result);
+        assertNotNull(result.QRCode());
+    }
+    @Test
+    void updateToPayed_ShouldUpdateStatus() {
+        // Given
+        String orderId = "order123";
+        UpdateToPayedRequest request = new UpdateToPayedRequest(orderId);
+
+        // Create a cash payment method
+        Cash cashPayment = new Cash();
+        cashPayment.setPaymentMethodType(PaymentMethodType.CASH);
+
+        ReceiptDocument receiptDoc = new ReceiptDocument();
+        receiptDoc.setReceiptId("receipt123");
+        receiptDoc.setOrderId(orderId);
+        receiptDoc.setPaymentMethod(cashPayment);
+        receiptDoc.setReceiptStatus(ReceiptStatus.PENDING); // Initial status
+
+        ReceiptRepositoryResponse repoResponse = new ReceiptRepositoryResponse(receiptDoc);
+
+        when(receiptRepositoryProvider.getByOrderId(orderId)).thenReturn(repoResponse);
+        when(receiptRepositoryProvider.save(any(Receipt.class))).thenAnswer(invocation -> {
+            Receipt savedReceipt = invocation.getArgument(0);
+            // Update the document with the saved receipt's status
+            receiptDoc.setReceiptStatus(savedReceipt.getReceiptStatus());
+            return new ReceiptRepositoryResponse(receiptDoc);
+        });
+
+        // When
+        boolean result = receiptService.updateToPayed(request);
+
+        // Then
+        assertTrue(result);
+        assertEquals(ReceiptStatus.PAYED, receiptDoc.getReceiptStatus());
+        verify(receiptRepositoryProvider).save(any(Receipt.class));
+    }
+
+    @Test
+    void updateToDelivered_ShouldUpdateStatus() {
+        // Given
+        String orderId = "order123";
+        UpdateToDeliveredRequest request = new UpdateToDeliveredRequest(orderId);
+
+        ReceiptDocument receiptDoc = new ReceiptDocument();
+        receiptDoc.setReceiptId("receipt123");
+        receiptDoc.setOrderId(orderId);
+        receiptDoc.setReceiptStatus(ReceiptStatus.PAYED);
+        receiptDoc.setOrderStatus(OrderStatus.PENDING);
+
+        ReceiptRepositoryResponse repoResponse = new ReceiptRepositoryResponse(receiptDoc);
+
+        when(receiptRepositoryProvider.getByOrderId(orderId)).thenReturn(repoResponse);
+        when(receiptRepositoryProvider.save(any(Receipt.class))).thenReturn(repoResponse);
+
+        // When
+        boolean result = receiptService.updateToDelivered(request);
+
+        // Then
+        assertTrue(result);
+        verify(receiptRepositoryProvider).save(any(Receipt.class));
+    }
+}
