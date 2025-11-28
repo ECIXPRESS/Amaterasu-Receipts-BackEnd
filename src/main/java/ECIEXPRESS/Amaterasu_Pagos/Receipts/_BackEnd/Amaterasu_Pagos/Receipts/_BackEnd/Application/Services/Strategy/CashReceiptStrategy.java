@@ -26,7 +26,6 @@ public class CashReceiptStrategy implements ReceiptStrategy{
         log.info("Creating receipt for client {} For store {} with orderId {}", request.clientId(),request.storeId(), request.orderId());
         Receipt receipt = Receipt.createReceipt(request);
         log.info("Receipt created successfully");
-        // Set receipt generated date in ISO-8601 format with milliseconds and timezone
         receipt.getTimeStamps().setReceiptGeneratedDate(DateUtils.formatDate(new Date(), DateUtils.TIMESTAMP_FORMAT));
         log.info("Validating QR Code to be created");
         QRCode qr = new QRCode();
