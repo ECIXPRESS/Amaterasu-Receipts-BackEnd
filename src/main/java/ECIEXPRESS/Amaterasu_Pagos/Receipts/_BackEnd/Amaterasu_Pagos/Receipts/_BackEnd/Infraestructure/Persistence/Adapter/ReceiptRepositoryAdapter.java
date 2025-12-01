@@ -4,7 +4,7 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Port.ReceiptRepositoryProvider;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Dto.RepositorytRequests.ReceiptDocument;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Dto.RepositorytResponses.ReceiptRepositoryResponse;
-import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Mappers.ReceiptDocumentMapper;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Mappers.ReceiptRepositoryMapper;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Repositories.MongoReceiptRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -20,30 +20,30 @@ public class ReceiptRepositoryAdapter implements ReceiptRepositoryProvider {
 
     @Override
     public ReceiptRepositoryResponse save(Receipt receipt) {
-        ReceiptDocument document = ReceiptDocumentMapper.toReceiptDocument(receipt);
+        ReceiptDocument document = ReceiptRepositoryMapper.toReceiptDocument(receipt);
         ReceiptDocument savedDocument = mongoReceiptRepository.save(document);
-        return ReceiptDocumentMapper.toReceipt(savedDocument);
+        return ReceiptRepositoryMapper.toReceipt(savedDocument);
     }
 
     @Override
     public List<ReceiptRepositoryResponse> getReceiptsByClientId(String clientId) {
         List<ReceiptDocument> documents = mongoReceiptRepository.findByClientId(clientId);
         return documents.stream()
-                .map(ReceiptDocumentMapper::toReceipt)
+                .map(ReceiptRepositoryMapper::toReceipt)
                 .collect(Collectors.toList());
     }
 
     @Override
     public ReceiptRepositoryResponse getByOrderId(String orderId) {
         ReceiptDocument document = mongoReceiptRepository.findByOrderId(orderId);
-        return ReceiptDocumentMapper.toReceipt(document);
+        return ReceiptRepositoryMapper.toReceipt(document);
     }
 
     @Override
     public List<ReceiptRepositoryResponse> getAll() {
         List<ReceiptDocument> documents = mongoReceiptRepository.findAll();
         return documents.stream()
-                .map(ReceiptDocumentMapper::toReceipt)
+                .map(ReceiptRepositoryMapper::toReceipt)
                 .collect(Collectors.toList());
     }
 }
