@@ -20,7 +20,7 @@ public class ReceiptRepositoryAdapter implements ReceiptRepositoryProvider {
 
     @Override
     public ReceiptRepositoryResponse save(Receipt receipt) {
-        ReceiptDocument document = ReceiptRepositoryMapper.toReceiptDocument(receipt);
+        ReceiptDocument document = ReceiptRepositoryMapper.ReceiptToDocument(receipt);
         ReceiptDocument savedDocument = mongoReceiptRepository.save(document);
         return ReceiptRepositoryMapper.toReceipt(savedDocument);
     }

@@ -4,9 +4,8 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Dto.RepositorytRequests.ReceiptDocument;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Dto.RepositorytResponses.ReceiptRepositoryResponse;
 
-
 public class ReceiptRepositoryMapper {
-    public static ReceiptDocument toReceiptDocument(Receipt receipt){
+    public static ReceiptDocument ReceiptToDocument(Receipt receipt){
         ReceiptDocument receiptDocument = new ReceiptDocument();
         receiptDocument.setReceiptId(receipt.getReceiptId());
         receiptDocument.setOrderId(receipt.getOrderId());
