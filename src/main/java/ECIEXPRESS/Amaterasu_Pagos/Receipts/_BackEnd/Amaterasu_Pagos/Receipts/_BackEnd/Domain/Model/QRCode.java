@@ -4,6 +4,7 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.PaymentMethodType;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.ReceiptStatus;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.DateUtils;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.SimpleEncryptionUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -68,6 +69,6 @@ public class QRCode {
                 throw new Exception("Payment processed at can't be after receipt generated date");
             }
         }
-        return orderId+"_"+receiptGeneratedDate+"_"+paymentProcessedAt+"_"+paymentMethodType+"_"+receiptStatus+"_"+orderStatus;
+        return SimpleEncryptionUtil.encrypt(orderId+"_"+receiptGeneratedDate+"_"+paymentProcessedAt+"_"+paymentMethodType+"_"+receiptStatus+"_"+orderStatus);
     }
 }
