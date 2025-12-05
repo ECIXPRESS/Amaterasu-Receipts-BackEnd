@@ -8,6 +8,7 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptRequests.CreateReceiptRequest;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptResponses.CreateReceiptResponse;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.DateUtils;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.EncryptionUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,13 +27,15 @@ class BankReceiptStrategyTest {
 
     @Mock
     private ReceiptRepositoryProvider receiptRepositoryProvider;
+    
+    @Mock
+    private EncryptionUtil encryptionUtil;
 
     private BankReceiptStrategy bankReceiptStrategy;
 
     @BeforeEach
     void setUp() {
-        bankReceiptStrategy = new BankReceiptStrategy();
-        bankReceiptStrategy.setReceiptRepositoryProvider(receiptRepositoryProvider);
+        bankReceiptStrategy = new BankReceiptStrategy(receiptRepositoryProvider, encryptionUtil);
     }
 
     @Test
@@ -67,6 +70,7 @@ class BankReceiptStrategyTest {
         ReceiptRepositoryResponse repoResponse = new ReceiptRepositoryResponse(receiptDoc);
 
         when(receiptRepositoryProvider.save(any(Receipt.class))).thenReturn(repoResponse);
+        when(encryptionUtil.encrypt(anyString())).thenReturn("encryptedData");
 
         // When
         CreateReceiptResponse response = bankReceiptStrategy.createReceipt(request);

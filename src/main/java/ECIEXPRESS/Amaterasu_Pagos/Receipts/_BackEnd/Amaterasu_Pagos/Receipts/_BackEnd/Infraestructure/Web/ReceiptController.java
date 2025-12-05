@@ -58,7 +58,7 @@ public class ReceiptController {
     }
 
     @PatchMapping("/{orderId}/deliver")
-    public ResponseEntity<Void> updateToDelivered(@PathVariable String orderId) {
+    public ResponseEntity<Void> updateToDelivered(@PathVariable String orderId){
         UpdateToDeliveredRequest request = new UpdateToDeliveredRequest(orderId);
         boolean updated = receiptUseCases.updateToDelivered(request);
         return updated ? 

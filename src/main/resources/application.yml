@@ -35,6 +35,11 @@ springdoc:
     version: 1.0.0
     description: API para gestión de recibos en ECIEXPRESS
 
+qr:
+  encryption:
+    password: "ECIEXPRESS_QR_PASSWORD_2025"
+    salt: "1234567890abcdef"
+
 # Configuración de Microservicios Externos
 microservices:
   qr-validator:
