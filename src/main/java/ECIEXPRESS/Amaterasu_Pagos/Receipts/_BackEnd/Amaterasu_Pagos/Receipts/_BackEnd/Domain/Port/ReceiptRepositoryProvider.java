@@ -7,7 +7,6 @@ import java.util.List;
 
 public interface ReceiptRepositoryProvider {
     ReceiptRepositoryResponse save(Receipt receipt);
-
     List<ReceiptRepositoryResponse> getReceiptsByClientId(String clientId);
     ReceiptRepositoryResponse getByOrderId(String orderId);
     List<ReceiptRepositoryResponse> getAll();
