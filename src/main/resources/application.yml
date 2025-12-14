@@ -42,13 +42,13 @@ qr:
 
 
 gateway:
-  url: http://gateway:8081/api
+  url: http://gateway:8081
 
 
 # Configuración de Microservicios Externos
 microservices:
   qr-validator:
-    base-path: /v1/qr-validator
+    base-path: /api/v1/qr-validator
 
 
 # Configuración de Resilience4j para Circuit Breaker
