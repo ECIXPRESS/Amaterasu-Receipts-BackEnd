@@ -22,8 +22,8 @@ ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
 
 COPY --from=build /app/target/*.jar app.jar
 
-
-EXPOSE 8080
+#belen
+EXPOSE 8090
 
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -40,15 +40,16 @@ qr:
     password: "ECIEXPRESS_QR_PASSWORD_2025"
     salt: "1234567890abcdef"
 
+
+gateway:
+  url: http://gateway:8081/api
+
+
 # Configuración de Microservicios Externos
 microservices:
   qr-validator:
-    url: http://localhost:8080
-    base-path: /api/v1/qr-validator
-    timeout: 5000
-    retry:
-      max-attempts: 3
-      backoff-delay: 1000
+    base-path: /v1/qr-validator
+
 
 # Configuración de Resilience4j para Circuit Breaker
 resilience4j:
