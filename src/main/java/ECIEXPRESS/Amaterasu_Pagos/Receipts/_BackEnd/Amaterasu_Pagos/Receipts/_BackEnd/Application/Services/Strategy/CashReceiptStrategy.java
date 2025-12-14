@@ -41,6 +41,6 @@ public class CashReceiptStrategy implements ReceiptStrategy{
         log.info("Saving receipt to database");
         receiptRepositoryProvider.save(receipt);
         log.info("Receipt saved successfully");
-        return ReceiptMapper.receiptToCreateReceiptResponse(receipt, "");
+        return ReceiptMapper.receiptToCreateReceiptResponse(receipt, null);
     }
 }
