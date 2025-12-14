@@ -13,6 +13,8 @@ public class ReceiptRepositoryMapper {
         receiptDocument.setStoreId(receipt.getStoreId());
         receiptDocument.setPaymentDetail(receipt.getPaymentDetail());
         receiptDocument.setPaymentMethod(receipt.getPaymentMethod());
+        receiptDocument.setReceiptStatus(receipt.getReceiptStatus());
+        receiptDocument.setOrderStatus(receipt.getOrderStatus());
         receiptDocument.setTimeStamps(receipt.getTimeStamps());
         return receiptDocument;
     }
