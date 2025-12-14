@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: 8090
 
 spring:
   application:
@@ -48,7 +48,7 @@ gateway:
 # Configuración de Microservicios Externos
 microservices:
   qr-validator:
-    base-path: /api/v1/qr-validator
+    base-path: /api/qr-validator
 
 
 # Configuración de Resilience4j para Circuit Breaker
