@@ -8,7 +8,6 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptRequests.CreateReceiptRequest;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptResponses.CreateReceiptResponse;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.DateUtils;
-import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.EncryptionUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +19,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,9 +26,6 @@ class CashReceiptStrategyTest {
 
     @Mock
     private ReceiptRepositoryProvider receiptRepositoryProvider;
-
-    @Mock
-    private EncryptionUtil encryptionUtil;
 
     private CashReceiptStrategy cashReceiptStrategy;
 
@@ -79,9 +74,6 @@ class CashReceiptStrategyTest {
                     return new ReceiptRepositoryResponse(receiptDoc);
                 });
 
-        // Mock the encryption util to return a dummy encrypted string
-        when(encryptionUtil.encrypt(anyString()))
-                .thenReturn("encrypted_qr_code");
 
         // When
         CreateReceiptResponse response = cashReceiptStrategy.createReceipt(request);
@@ -90,7 +82,6 @@ class CashReceiptStrategyTest {
         assertNotNull(response);
         assertEquals("order123", response.orderId());
         verify(receiptRepositoryProvider, times(1)).save(any(Receipt.class));
-        verify(encryptionUtil, times(1)).encrypt(anyString());
     }
 
     @Test
@@ -131,9 +122,6 @@ class CashReceiptStrategyTest {
                     return new ReceiptRepositoryResponse(receiptDoc);
                 });
 
-        // Mock the encryption util to return a dummy encrypted string
-        when(encryptionUtil.encrypt(anyString()))
-                .thenReturn("encrypted_qr_code");
 
         // When
         CreateReceiptResponse response = cashReceiptStrategy.createReceipt(request);
@@ -141,6 +129,5 @@ class CashReceiptStrategyTest {
         // Then
         assertNotNull(response);
         verify(receiptRepositoryProvider, times(1)).save(any(Receipt.class));
-        verify(encryptionUtil, times(1)).encrypt(anyString());
     }
 }
