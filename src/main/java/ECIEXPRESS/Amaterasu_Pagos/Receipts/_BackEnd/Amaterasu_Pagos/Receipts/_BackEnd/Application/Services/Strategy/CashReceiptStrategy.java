@@ -11,18 +11,17 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.EncryptionUtil;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
 @Slf4j
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class CashReceiptStrategy implements ReceiptStrategy{
-    private ReceiptRepositoryProvider receiptRepositoryProvider;
-    private EncryptionUtil encryptionUtil;
+    private final ReceiptRepositoryProvider receiptRepositoryProvider;
     @Override
     public CreateReceiptResponse createReceipt(CreateReceiptRequest request) {
         log.info("Creating receipt for client {} For store {} with orderId {}", request.clientId(),request.storeId(), request.orderId());

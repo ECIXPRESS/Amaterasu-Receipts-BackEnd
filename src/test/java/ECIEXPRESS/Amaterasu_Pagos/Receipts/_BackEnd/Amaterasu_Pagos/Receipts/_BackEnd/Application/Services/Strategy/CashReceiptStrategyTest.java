@@ -36,7 +36,7 @@ class CashReceiptStrategyTest {
 
     @BeforeEach
     void setUp() {
-        cashReceiptStrategy = new CashReceiptStrategy(receiptRepositoryProvider, encryptionUtil);
+        cashReceiptStrategy = new CashReceiptStrategy(receiptRepositoryProvider);
     }
 
     @Test

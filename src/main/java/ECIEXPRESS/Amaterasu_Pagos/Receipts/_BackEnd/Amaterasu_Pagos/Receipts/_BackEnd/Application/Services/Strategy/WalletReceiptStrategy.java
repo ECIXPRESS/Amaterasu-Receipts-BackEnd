@@ -19,12 +19,11 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 
 @Slf4j
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Service
 public class WalletReceiptStrategy implements ReceiptStrategy{
-    private ReceiptRepositoryProvider receiptRepositoryProvider;
-    private EncryptionUtil encryptionUtil;
+    private final ReceiptRepositoryProvider receiptRepositoryProvider;
+    private final EncryptionUtil encryptionUtil ;
     @Override
     public CreateReceiptResponse createReceipt(CreateReceiptRequest request) {
         log.info("Creating receipt for client {} For store {} with orderId {}", request.clientId(),request.storeId(), request.orderId());

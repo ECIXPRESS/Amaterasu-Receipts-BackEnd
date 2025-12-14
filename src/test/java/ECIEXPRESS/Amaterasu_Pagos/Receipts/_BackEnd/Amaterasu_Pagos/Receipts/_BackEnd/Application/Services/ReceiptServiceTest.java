@@ -43,14 +43,19 @@ class ReceiptServiceTest {
 
     @BeforeEach
     void setUp() {
-        receiptService = new ReceiptService(receiptRepositoryProvider);
+        receiptService = new ReceiptService(receiptRepositoryProvider, bankReceiptStrategy, walletReceiptStrategy, cashReceiptStrategy);
         // Use reflection to set the private fields for testing
         try {
-            var repositoryField = ReceiptService.class.getDeclaredField("receiptRepositoryProvider");
-            repositoryField.setAccessible(true);
-            repositoryField.set(receiptService, receiptRepositoryProvider);
+            var strategyMapField = ReceiptService.class.getDeclaredField("strategyMap");
+            strategyMapField.setAccessible(true);
+            strategyMapField.set(receiptService,
+                    java.util.Map.of(
+                            PaymentMethodType.BANK, bankReceiptStrategy,
+                            PaymentMethodType.CASH, cashReceiptStrategy,
+                            PaymentMethodType.WALLET, walletReceiptStrategy
+                    ));
         } catch (Exception e) {
-            throw new RuntimeException("Failed to set repository provider", e);
+            throw new RuntimeException("Failed to set strategy map", e);
         }
     }
 
