@@ -29,19 +29,19 @@ public class CashReceiptStrategy implements ReceiptStrategy{
         Receipt receipt = Receipt.createReceipt(request);
         log.info("Receipt created successfully");
         receipt.getTimeStamps().setReceiptGeneratedDate(DateUtils.formatDate(new Date(), DateUtils.TIMESTAMP_FORMAT));
-        log.info("Validating QR Code to be created");
-        QRCode qr = new QRCode();
-        String qrCode;
-        try {
-            qrCode = encryptionUtil.encrypt(qr.createQrCode(receipt));
-        } catch (Exception e) {
-            log.error("Failed to validate QR Code because: {}", e.getMessage());
-            throw new RuntimeException(e);
-        }
-        log.info("QR Code created successfully");
+//        log.info("Validating QR Code to be created");
+//        QRCode qr = new QRCode();
+//        String qrCode;
+//        try {
+//            qrCode = encryptionUtil.encrypt(qr.createQrCode(receipt));
+//        } catch (Exception e) {
+//            log.error("Failed to validate QR Code because: {}", e.getMessage());
+//            throw new RuntimeException(e);
+//        }
+//        log.info("QR Code created successfully");
         log.info("Saving receipt to database");
-        ReceiptRepositoryResponse repositoryResponse= receiptRepositoryProvider.save(receipt);
+        receiptRepositoryProvider.save(receipt);
         log.info("Receipt saved successfully");
-        return ReceiptMapper.receiptToCreateReceiptResponse(receipt, qrCode);
+        return ReceiptMapper.receiptToCreateReceiptResponse(receipt, "");
     }
 }
