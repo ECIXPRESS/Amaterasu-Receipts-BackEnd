@@ -1047,7 +1047,7 @@ La arquitectura de dominio se centra en la entidad **Receipt**, que agrupa toda 
 ### 🗄️ Diagrama de Despliegue
 
 <div align="center">
-<img src="docs/images/azureRecibos.png" alt="Diagrama de Despliegue " width="600"/>
+<img src="docs/images/azureReciboss.png" alt="Diagrama de Despliegue " width="600"/>
 </div>
 
 ---
