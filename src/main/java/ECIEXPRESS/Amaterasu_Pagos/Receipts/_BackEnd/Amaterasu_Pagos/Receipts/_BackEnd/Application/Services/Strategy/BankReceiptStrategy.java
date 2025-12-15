@@ -1,6 +1,8 @@
 package ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy;
 
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Mappers.ReceiptMapper;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Bank;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.PaymentMethodType;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.ReceiptStatus;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.QRCode;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Receipt;
@@ -41,9 +43,15 @@ public class BankReceiptStrategy implements ReceiptStrategy{
             throw new RuntimeException(e);
         }
         log.info("QR Code created successfully");
+        log.info("Setting bank receipt number");
+        if (receipt.getPaymentMethod().getPaymentMethodType() == PaymentMethodType.BANK) {
+            Bank bank = (Bank) receipt.getPaymentMethod();
+            receipt.getPaymentDetail().setBankReceiptNumber(bank.getBankReceiptNumber());
+        }
         log.info("Saving receipt to database");
         receiptRepositoryProvider.save(receipt);
         log.info("Receipt saved successfully");
+
         receipt.setReceiptStatus(ReceiptStatus.PAYED);
 
         return ReceiptMapper.receiptToCreateReceiptResponse(receipt, qrCode);
