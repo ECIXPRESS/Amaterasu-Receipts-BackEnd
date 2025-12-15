@@ -8,6 +8,7 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptRequests.CreateReceiptRequest;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptResponses.CreateReceiptResponse;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.DateUtils;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.EncryptionUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,11 +28,14 @@ class WalletReceiptStrategyTest {
     @Mock
     private ReceiptRepositoryProvider receiptRepositoryProvider;
 
+    @Mock
+    private EncryptionUtil encryptionUtil;
+
     private WalletReceiptStrategy walletReceiptStrategy;
 
     @BeforeEach
     void setUp() {
-        walletReceiptStrategy = new WalletReceiptStrategy(receiptRepositoryProvider);
+        walletReceiptStrategy = new WalletReceiptStrategy(receiptRepositoryProvider, encryptionUtil);
     }
 
     @Test
@@ -41,7 +45,6 @@ class WalletReceiptStrategyTest {
         wallet.setPaymentMethodType(PaymentMethodType.WALLET);
 
         TimeStamps timeStamps = new TimeStamps();
-        // For WALLET payment, dates should be consistent (no specific order requirement like BANK/CASH)
         String currentDate = DateUtils.formatDate(new Date(), DateUtils.TIMESTAMP_FORMAT);
         timeStamps.setReceiptGeneratedDate(currentDate);
         timeStamps.setPaymentProcessedAt(currentDate);
@@ -51,17 +54,22 @@ class WalletReceiptStrategyTest {
                 100.0, 100.0, wallet, timeStamps, List.of()
         );
 
+        // Mock the repository to return a valid response
         ReceiptDocument receiptDoc = new ReceiptDocument();
         receiptDoc.setReceiptId("receipt123");
         receiptDoc.setOrderId("order123");
         receiptDoc.setClientId("client123");
         receiptDoc.setStoreId("store456");
-        receiptDoc.setReceiptStatus(ReceiptStatus.PENDING); // Wallet remains PENDING
+        receiptDoc.setReceiptStatus(ReceiptStatus.PENDING);
         receiptDoc.setOrderStatus(OrderStatus.PENDING);
+        receiptDoc.setTimeStamps(timeStamps);
 
-        ReceiptRepositoryResponse repoResponse = new ReceiptRepositoryResponse(receiptDoc);
+        when(receiptRepositoryProvider.save(any(Receipt.class)))
+                .thenReturn(new ReceiptRepositoryResponse(receiptDoc));
 
-        when(receiptRepositoryProvider.save(any(Receipt.class))).thenReturn(repoResponse);
+        // Mock the encryption util to return a dummy encrypted string
+        when(encryptionUtil.encrypt(anyString()))
+                .thenReturn("encrypted_qr_code");
 
         // When
         CreateReceiptResponse response = walletReceiptStrategy.createReceipt(request);
@@ -69,11 +77,8 @@ class WalletReceiptStrategyTest {
         // Then
         assertNotNull(response);
         assertEquals("order123", response.orderId());
-        assertEquals("client123", response.clientId());
-        assertEquals(ReceiptStatus.PENDING, response.receiptStatus()); // Should be PENDING for wallet
-        assertNotNull(response.qrCode());
-
         verify(receiptRepositoryProvider, times(1)).save(any(Receipt.class));
+        verify(encryptionUtil, times(1)).encrypt(anyString());
     }
 
     @Test

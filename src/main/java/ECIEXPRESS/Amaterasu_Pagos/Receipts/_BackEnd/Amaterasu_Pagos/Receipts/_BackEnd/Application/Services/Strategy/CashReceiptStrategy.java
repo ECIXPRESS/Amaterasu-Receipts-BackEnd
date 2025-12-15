@@ -8,6 +8,7 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptRequests.CreateReceiptRequest;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptResponses.CreateReceiptResponse;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.DateUtils;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Utils.EncryptionUtil;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,8 @@ import java.util.Date;
 @NoArgsConstructor
 @Service
 public class CashReceiptStrategy implements ReceiptStrategy{
-    private  ReceiptRepositoryProvider receiptRepositoryProvider;
+    private ReceiptRepositoryProvider receiptRepositoryProvider;
+    private EncryptionUtil encryptionUtil;
     @Override
     public CreateReceiptResponse createReceipt(CreateReceiptRequest request) {
         log.info("Creating receipt for client {} For store {} with orderId {}", request.clientId(),request.storeId(), request.orderId());
@@ -31,7 +33,7 @@ public class CashReceiptStrategy implements ReceiptStrategy{
         QRCode qr = new QRCode();
         String qrCode;
         try {
-            qrCode = qr.createQrCode(receipt);
+            qrCode = encryptionUtil.encrypt(qr.createQrCode(receipt));
         } catch (Exception e) {
             log.error("Failed to validate QR Code because: {}", e.getMessage());
             throw new RuntimeException(e);
