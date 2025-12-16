@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Wallet extends PaymentMethod {
-    private PaymentMethodType paymentMethodType;
 
     public PaymentMethod createPaymentMethod() {
         Wallet wallet = new Wallet();

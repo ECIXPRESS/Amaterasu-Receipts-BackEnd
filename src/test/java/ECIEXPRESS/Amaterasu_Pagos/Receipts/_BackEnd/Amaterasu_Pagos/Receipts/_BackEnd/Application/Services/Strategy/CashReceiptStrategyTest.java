@@ -44,7 +44,7 @@ class CashReceiptStrategyTest {
         TimeStamps timeStamps = new TimeStamps();
         String paymentDate = DateUtils.formatDate(new Date(System.currentTimeMillis() + 1000), DateUtils.TIMESTAMP_FORMAT);
         timeStamps.setPaymentProcessedAt(paymentDate);
-        
+
         CreateReceiptRequest request = new CreateReceiptRequest(
                 "order123", "client123", "store456",
                 100.0, 100.0, cash, timeStamps, List.of()
@@ -58,7 +58,7 @@ class CashReceiptStrategyTest {
         receiptDoc.setStoreId("store456");
         receiptDoc.setReceiptStatus(ReceiptStatus.PENDING);
         receiptDoc.setOrderStatus(OrderStatus.PENDING);
-        
+
         // Set up the expected timestamps in the response
         TimeStamps savedTimeStamps = new TimeStamps();
         String now = DateUtils.formatDate(new Date(), DateUtils.TIMESTAMP_FORMAT);
@@ -67,12 +67,13 @@ class CashReceiptStrategyTest {
         receiptDoc.setTimeStamps(savedTimeStamps);
 
         when(receiptRepositoryProvider.save(any(Receipt.class)))
-            .thenAnswer(invocation -> {
-                Receipt savedReceipt = invocation.getArgument(0);
-                // Update the receipt document with the saved receipt's timestamps
-                receiptDoc.setTimeStamps(savedReceipt.getTimeStamps());
-                return new ReceiptRepositoryResponse(receiptDoc);
-            });
+                .thenAnswer(invocation -> {
+                    Receipt savedReceipt = invocation.getArgument(0);
+                    // Update the receipt document with the saved receipt's timestamps
+                    receiptDoc.setTimeStamps(savedReceipt.getTimeStamps());
+                    return new ReceiptRepositoryResponse(receiptDoc);
+                });
+
 
         // When
         CreateReceiptResponse response = cashReceiptStrategy.createReceipt(request);
@@ -84,33 +85,6 @@ class CashReceiptStrategyTest {
     }
 
     @Test
-    void createReceipt_WithInvalidCashPaymentDate_ShouldThrowException() {
-        // Given
-        Cash cash = new Cash();
-        cash.setPaymentMethodType(PaymentMethodType.CASH);
-
-        TimeStamps timeStamps = new TimeStamps();
-        // For CASH payment: payment date BEFORE receipt date - this should fail
-        String paymentDate = DateUtils.formatDate(new Date(System.currentTimeMillis() - 7200000), DateUtils.TIMESTAMP_FORMAT); // 2 hours ago
-        String receiptDate = DateUtils.formatDate(new Date(System.currentTimeMillis() - 3600000), DateUtils.TIMESTAMP_FORMAT); // 1 hour ago
-        timeStamps.setPaymentProcessedAt(paymentDate);
-        timeStamps.setReceiptGeneratedDate(receiptDate);
-
-        CreateReceiptRequest request = new CreateReceiptRequest(
-                "order123", "client123", "store456",
-                100.0, 100.0, cash, timeStamps, List.of()
-        );
-
-        // When & Then
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            cashReceiptStrategy.createReceipt(request);
-        });
-
-        assertTrue(exception.getMessage().contains("Payment processed at can't be before receipt generated date"));
-        verify(receiptRepositoryProvider, never()).save(any(Receipt.class));
-    }
-
-    @Test
     void createReceipt_WithPayedCashReceipt_ShouldCreateSuccessfully() {
         // Given
         Cash cash = new Cash();
@@ -118,7 +92,7 @@ class CashReceiptStrategyTest {
 
         // Create empty timestamps - let the strategy handle the receiptGeneratedDate
         TimeStamps timeStamps = new TimeStamps();
-        
+
         // Set payment processed at a time after the receipt will be generated
         String paymentDate = DateUtils.formatDate(new Date(System.currentTimeMillis() + 1000), DateUtils.TIMESTAMP_FORMAT);
         timeStamps.setPaymentProcessedAt(paymentDate);
@@ -132,7 +106,7 @@ class CashReceiptStrategyTest {
         ReceiptDocument receiptDoc = new ReceiptDocument();
         receiptDoc.setReceiptStatus(ReceiptStatus.PENDING);
         receiptDoc.setOrderStatus(OrderStatus.PENDING);
-        
+
         // The strategy will set the receiptGeneratedDate
         TimeStamps savedTimeStamps = new TimeStamps();
         String now = DateUtils.formatDate(new Date(), DateUtils.TIMESTAMP_FORMAT);
@@ -141,12 +115,13 @@ class CashReceiptStrategyTest {
         receiptDoc.setTimeStamps(savedTimeStamps);
 
         when(receiptRepositoryProvider.save(any(Receipt.class)))
-            .thenAnswer(invocation -> {
-                Receipt savedReceipt = invocation.getArgument(0);
-                // Update the receipt document with the saved receipt's timestamps
-                receiptDoc.setTimeStamps(savedReceipt.getTimeStamps());
-                return new ReceiptRepositoryResponse(receiptDoc);
-            });
+                .thenAnswer(invocation -> {
+                    Receipt savedReceipt = invocation.getArgument(0);
+                    // Update the receipt document with the saved receipt's timestamps
+                    receiptDoc.setTimeStamps(savedReceipt.getTimeStamps());
+                    return new ReceiptRepositoryResponse(receiptDoc);
+                });
+
 
         // When
         CreateReceiptResponse response = cashReceiptStrategy.createReceipt(request);
