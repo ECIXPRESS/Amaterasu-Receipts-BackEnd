@@ -3,8 +3,14 @@ package ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._B
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy.BankReceiptStrategy;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy.CashReceiptStrategy;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Application.Services.Strategy.WalletReceiptStrategy;
-import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.*;
-import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.*;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Bank;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Cash;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.TimeStamps;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Wallet;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.OrderStatus;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.PaymentMethodType;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Enums.ReceiptStatus;
+import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Model.Receipt;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Domain.Port.ReceiptRepositoryProvider;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Dto.RepositorytRequests.ReceiptDocument;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Persistence.Dto.RepositorytResponses.ReceiptRepositoryResponse;
@@ -15,9 +21,11 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Assumptions;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,26 +42,169 @@ class ReceiptServiceTest {
     private BankReceiptStrategy bankReceiptStrategy;
 
     @Mock
-    private CashReceiptStrategy cashReceiptStrategy;
+    private WalletReceiptStrategy walletReceiptStrategy;
 
     @Mock
-    private WalletReceiptStrategy walletReceiptStrategy;
+    private CashReceiptStrategy cashReceiptStrategy;
 
     private ReceiptService receiptService;
 
     @BeforeEach
     void setUp() {
-        receiptService = new ReceiptService(receiptRepositoryProvider);
-        // Use reflection to set the private fields for testing
-        try {
-            var repositoryField = ReceiptService.class.getDeclaredField("receiptRepositoryProvider");
-            repositoryField.setAccessible(true);
-            repositoryField.set(receiptService, receiptRepositoryProvider);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set repository provider", e);
-        }
+        receiptService = new ReceiptService(
+                receiptRepositoryProvider,
+                bankReceiptStrategy,
+                walletReceiptStrategy,
+                cashReceiptStrategy
+        );
     }
 
+    @Test
+    void createReceipt_WithWalletPayment_ShouldUseWalletStrategy() {
+        // Given
+        Wallet wallet = new Wallet();
+        wallet.setPaymentMethodType(PaymentMethodType.WALLET);
+
+        CreateReceiptRequest request = new CreateReceiptRequest(
+                "orderW1", "clientW1", "storeW1",
+                100.0, 100.0, wallet, new TimeStamps(), List.of("PROMO10")
+        );
+
+        CreateReceiptResponse expected = new CreateReceiptResponse(
+                "receiptW1", "orderW1", "clientW1", "storeW1",
+                100.0, ReceiptStatus.PAYED, "qr_wallet"
+        );
+
+        when(walletReceiptStrategy.createReceipt(request)).thenReturn(expected);
+
+        // When
+        CreateReceiptResponse result = receiptService.createReceipt(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("receiptW1", result.receiptId());
+        verify(walletReceiptStrategy).createReceipt(request);
+        verifyNoInteractions(bankReceiptStrategy);
+        verifyNoInteractions(cashReceiptStrategy);
+    }
+
+    @Test
+    void createReceipt_WithCashPayment_ShouldUseCashStrategy() {
+        // Given
+        Cash cash = new Cash();
+        cash.setPaymentMethodType(PaymentMethodType.CASH);
+
+        CreateReceiptRequest request = new CreateReceiptRequest(
+                "orderC1", "clientC1", "storeC1",
+                50.0, 50.0, cash, new TimeStamps(), List.of()
+        );
+
+        CreateReceiptResponse expected = new CreateReceiptResponse(
+                "receiptC1", "orderC1", "clientC1", "storeC1",
+                50.0, ReceiptStatus.PENDING, "qr_cash"
+        );
+
+        when(cashReceiptStrategy.createReceipt(request)).thenReturn(expected);
+
+        // When
+        CreateReceiptResponse result = receiptService.createReceipt(request);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("receiptC1", result.receiptId());
+        verify(cashReceiptStrategy).createReceipt(request);
+        verifyNoInteractions(bankReceiptStrategy);
+        verifyNoInteractions(walletReceiptStrategy);
+    }
+
+    @Test
+    void getQrCodeByOrderId_ShouldWrapExceptionIntoRuntimeException() {
+        // Given
+        String orderId = "orderFail1";
+        GetQrReceiptRequest request = new GetQrReceiptRequest(orderId);
+
+        RuntimeException root = new RuntimeException("boom");
+        when(receiptRepositoryProvider.getByOrderId(orderId)).thenThrow(root);
+
+        // When
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> receiptService.getQrCodeByOrderId(request));
+
+        // Then
+        assertTrue(ex.getMessage().contains("Failed to generate QR code"));
+        assertTrue(ex.getMessage().contains("boom"));
+        assertSame(root, ex.getCause());
+    }
+
+    @Test
+    void getReceiptsByClientId_WhenEmpty_ShouldReturnEmptyList() {
+        // Given
+        String clientId = "clientEmpty";
+        GetReceiptByClientIdRequest request = new GetReceiptByClientIdRequest(clientId);
+
+        when(receiptRepositoryProvider.getReceiptsByClientId(clientId)).thenReturn(List.of());
+
+        // When
+        List<?> result = receiptService.getReceiptsByClientId(request);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(receiptRepositoryProvider).getReceiptsByClientId(clientId);
+    }
+
+    @Test
+    void updateToPayed_WhenAlreadyPayed_ShouldThrowAndNotSave() {
+        // Given
+        String orderId = "orderAlreadyPayed";
+        UpdateToPayedRequest request = new UpdateToPayedRequest(orderId);
+
+        ReceiptDocument receiptDoc = new ReceiptDocument();
+        receiptDoc.setReceiptId("r1");
+        receiptDoc.setOrderId(orderId);
+        receiptDoc.setClientId("c1");
+        receiptDoc.setStoreId("s1");
+        receiptDoc.setReceiptStatus(ReceiptStatus.PAYED);
+        receiptDoc.setOrderStatus(OrderStatus.PENDING);
+
+        // Receipt.updateToPayed() uses paymentMethodType internally; make sure it is present to avoid NPE.
+        Cash cashPayment = new Cash();
+        cashPayment.setPaymentMethodType(PaymentMethodType.CASH);
+        receiptDoc.setPaymentMethod(cashPayment);
+
+        ReceiptRepositoryResponse repoResponse = new ReceiptRepositoryResponse(receiptDoc);
+        when(receiptRepositoryProvider.getByOrderId(orderId)).thenReturn(repoResponse);
+
+        // When / Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> receiptService.updateToPayed(request));
+        assertTrue(ex.getMessage().toLowerCase().contains("already payed"));
+
+        verify(receiptRepositoryProvider, never()).save(any(Receipt.class));
+    }
+
+    @Test
+    void updateToDelivered_WhenAlreadyDelivered_ShouldThrowAndNotSave() {
+        // Given
+        String orderId = "orderAlreadyDelivered";
+        UpdateToDeliveredRequest request = new UpdateToDeliveredRequest(orderId);
+
+        ReceiptDocument receiptDoc = new ReceiptDocument();
+        receiptDoc.setReceiptId("r2");
+        receiptDoc.setOrderId(orderId);
+        receiptDoc.setClientId("c2");
+        receiptDoc.setStoreId("s2");
+        receiptDoc.setReceiptStatus(ReceiptStatus.PAYED);
+        receiptDoc.setOrderStatus(OrderStatus.DELIVERED);
+
+        ReceiptRepositoryResponse repoResponse = new ReceiptRepositoryResponse(receiptDoc);
+
+        when(receiptRepositoryProvider.getByOrderId(orderId)).thenReturn(repoResponse);
+        // When / Then
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> receiptService.updateToDelivered(request));
+        assertTrue(ex.getMessage().toLowerCase().contains("delivered"));
+
+        // Since the domain throws, the service must not persist.
+        verify(receiptRepositoryProvider, never()).save(any(Receipt.class));
+    }
     @Test
     void createReceipt_WithBankPayment_ShouldUseBankStrategy() {
         // Given
@@ -71,20 +222,6 @@ class ReceiptServiceTest {
         );
 
         when(bankReceiptStrategy.createReceipt(request)).thenReturn(expectedResponse);
-
-        // Use reflection to set strategy map
-        try {
-            var strategyMapField = ReceiptService.class.getDeclaredField("strategyMap");
-            strategyMapField.setAccessible(true);
-            strategyMapField.set(receiptService,
-                    java.util.Map.of(
-                            PaymentMethodType.BANK, bankReceiptStrategy,
-                            PaymentMethodType.CASH, cashReceiptStrategy,
-                            PaymentMethodType.WALLET, walletReceiptStrategy
-                    ));
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set strategy map", e);
-        }
 
         // When
         CreateReceiptResponse result = receiptService.createReceipt(request);

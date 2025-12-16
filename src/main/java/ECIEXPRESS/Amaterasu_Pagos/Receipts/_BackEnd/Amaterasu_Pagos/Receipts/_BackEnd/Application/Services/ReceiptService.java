@@ -13,35 +13,44 @@ import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._Ba
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptResponses.CreateReceiptResponse;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptResponses.GetQrReceiptResponse;
 import ECIEXPRESS.Amaterasu_Pagos.Receipts._BackEnd.Amaterasu_Pagos.Receipts._BackEnd.Infraestructure.Web.Dto.ReceiptResponses.GetReceiptResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
-@AllArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class ReceiptService implements ReceiptUseCases {
-    private ReceiptRepositoryProvider receiptRepositoryProvider;
-    private final Map<PaymentMethodType, ReceiptStrategy> strategyMap =Map.of(
-            PaymentMethodType.BANK, new BankReceiptStrategy(),
-            PaymentMethodType.WALLET, new WalletReceiptStrategy(),
-            PaymentMethodType.CASH, new CashReceiptStrategy());
+
+    private final ReceiptRepositoryProvider receiptRepositoryProvider;
+
+    private final BankReceiptStrategy bankReceiptStrategy;
+    private final WalletReceiptStrategy walletReceiptStrategy;
+    private final CashReceiptStrategy cashReceiptStrategy;
 
     @Override
     public CreateReceiptResponse createReceipt(CreateReceiptRequest request) {
-        ReceiptStrategy strategy = strategyMap.get(request.paymentMethod().getPaymentMethodType());
+        PaymentMethodType methodType = request.paymentMethod().getPaymentMethodType();
+
+        ReceiptStrategy strategy = switch (methodType) {
+            case BANK -> bankReceiptStrategy;
+            case WALLET -> walletReceiptStrategy;
+            case CASH -> cashReceiptStrategy;
+            default -> throw new IllegalArgumentException("Unsupported payment method type: " + methodType);
+        };
+
         return strategy.createReceipt(request);
     }
 
     @Override
     public List<GetReceiptResponse> getReceiptsByClientId(GetReceiptByClientIdRequest request) {
         List<Receipt> receipts = receiptRepositoryProvider.getReceiptsByClientId(request.clientId()).stream()
-                                    .map(ReceiptMapper::createReceipt)
-                                    .collect(Collectors.toList());
+                .map(ReceiptMapper::createReceipt)
+                .collect(Collectors.toList());
+
         return receipts.stream()
                 .map(ReceiptMapper::receiptToGetReceiptResponse)
                 .collect(Collectors.toList());
@@ -55,11 +64,10 @@ public class ReceiptService implements ReceiptUseCases {
 
     @Override
     public GetQrReceiptResponse getQrCodeByOrderId(GetQrReceiptRequest request) {
-        try{
+        try {
             Receipt receipt = ReceiptMapper.createReceipt(receiptRepositoryProvider.getByOrderId(request.orderId()));
             return ReceiptMapper.receiptToGetQrReceiptResponse(receipt);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to generate QR code: " + e.getMessage(), e);
         }
     }
